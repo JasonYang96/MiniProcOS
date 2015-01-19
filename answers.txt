@@ -9,6 +9,47 @@ Response to Exercise 1: The return value would be exactly the same as the p_id o
 
 Anything else you'd like us to know:
 
+Implementation of Exercise 2:
 
+// static pid_t
+// do_fork(process_t *parent)
+// {
+// 	int i;
+//
+// 	//find an empty process desciptor
+// 	for (i = 1; i < NPROCS ; i++)
+// 	{
+// 		//empty process found
+// 		if (proc_array[i].p_state == P_EMPTY)
+// 		{
+// 			proc_array[i].p_state = P_RUNNABLE;
+// 			proc_array[i].p_registers = parent->p_registers;
+// 			proc_array[i].p_registers.reg_eax = 0;
+// 			copy_stack(&proc_array[i], parent);
+// 			return i;
+// 		}
+// 	}
+//
+// 	return -1;
+// }
+
+// static void
+// copy_stack(process_t *dest, process_t *src)
+// {
+// 	uint32_t src_stack_bottom, src_stack_top;
+// 	uint32_t dest_stack_bottom, dest_stack_top;
+//	
+// 	src_stack_top = PROC1_STACK_ADDR + src->p_pid * PROC_STACK_SIZE;
+// 	src_stack_bottom = src->p_registers.reg_esp;
+// 	uint32_t difference = src_stack_top - src_stack_bottom;
+// 	dest_stack_top = PROC1_STACK_ADDR + dest->p_pid * PROC_STACK_SIZE;
+// 	dest_stack_bottom = dest_stack_top - difference;
+// 	//memcpy the stack and set dest->p_registers.reg_esp
+// 	memcpy((void *)dest_stack_bottom, (void *)src_stack_bottom, difference);
+// 	dest->p_registers.reg_esp = dest_stack_bottom;
+// }
+
+Implementation of Exercise 3:
+I first added a pid_t variable to the process struct. This will let the process know which process called sys_wait() on it. I then added the initialization of this variable to 0 in the for loop that initializes the processes. I then change the SYS_WWAIT implementation so that it would change the current state to P_BLOCKED and update the p_wait_pid variable to current p_pid. I then changed the SYS_EXIT implementation so that if the p_wait_id is not equal to zero, change the p_wait_pid state to runnable and return the exit status into the p_wait_id into the eax register.
 
 Extra credit exercises:
