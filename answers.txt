@@ -1,13 +1,11 @@
-Name:
-UCLA ID:
+Name: Jason Yang
+UCLA ID: 804331785
 
 Collaborators:
 
 -------------------------------------------------------------------------------
 
-Response to Exercise 1:
-
-
+Response to Exercise 1: The return value would be exactly the same as the p_id of the process does not change when the kernel gets back to it. Therefore, the call to sys_getpid() will return the correct value.
 
 Anything else you'd like us to know:
 
