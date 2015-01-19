@@ -76,6 +76,7 @@ start(void)
 	for (i = 0; i < NPROCS; i++) {
 		proc_array[i].p_pid = i;
 		proc_array[i].p_state = P_EMPTY;
+		proc_array[i].p_wait_pid = 0;
 	}
 
 	// The first process has process ID 1.
@@ -170,6 +171,12 @@ interrupt(registers_t *reg)
 		// for this register out of 'current->p_registers'.
 		current->p_state = P_ZOMBIE;
 		current->p_exit_status = current->p_registers.reg_eax;
+		if (current->p_wait_pid != 0)
+		{
+			proc_array[current->p_wait_pid].p_state = P_RUNNABLE;
+			proc_array[current->p_wait_pid].p_registers.reg_eax = current->p_exit_status;
+			current->p_wait_pid = 0;
+		}
 		schedule();
 
 	case INT_SYS_WAIT: {
@@ -189,7 +196,11 @@ interrupt(registers_t *reg)
 		else if (proc_array[p].p_state == P_ZOMBIE)
 			current->p_registers.reg_eax = proc_array[p].p_exit_status;
 		else
+		{
 			current->p_registers.reg_eax = WAIT_TRYAGAIN;
+			current->p_state = P_BLOCKED;
+			proc_array[p].p_wait_pid = current->p_pid ;
+		}
 		schedule();
 	}
 
@@ -311,14 +322,12 @@ copy_stack(process_t *dest, process_t *src)
 	// Your job is to figure out how to calculate these variables,
 	// and then how to actually copy the stack.  (Hint: use memcpy.)
 	// We have done one for you.
-
-	// YOUR CODE HERE!
 	src_stack_top = PROC1_STACK_ADDR + src->p_pid * PROC_STACK_SIZE;
 	src_stack_bottom = src->p_registers.reg_esp;
 	uint32_t difference = src_stack_top - src_stack_bottom;
 	dest_stack_top = PROC1_STACK_ADDR + dest->p_pid * PROC_STACK_SIZE;
 	dest_stack_bottom = dest_stack_top - difference;
-	// YOUR CODE HERE: memcpy the stack and set dest->p_registers.reg_esp
+	//memcpy the stack and set dest->p_registers.reg_esp
 	memcpy((void *)dest_stack_bottom, (void *)src_stack_bottom, difference);
 	dest->p_registers.reg_esp = dest_stack_bottom;
 }
