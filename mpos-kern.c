@@ -240,6 +240,22 @@ do_fork(process_t *parent)
 	// You need to set one other process descriptor field as well.
 	// Finally, return the child's process ID to the parent.
 
+	int i;
+
+	//find an empty process desciptor
+	for (i = 1; i < NPROCS ; i++)
+	{
+		//empty process found
+		if (proc_array[i].p_state == P_EMPTY)
+		{
+			proc_array[i].p_state = P_RUNNABLE;
+			proc_array[i].p_registers = parent->p_registers;
+			proc_array[i].p_registers.reg_eax = 0;
+			copy_stack(&proc_array[i], parent);
+			return i;
+		}
+	}
+
 	return -1;
 }
 
@@ -297,13 +313,14 @@ copy_stack(process_t *dest, process_t *src)
 	// We have done one for you.
 
 	// YOUR CODE HERE!
-
-	src_stack_top = 0 /* YOUR CODE HERE */;
+	src_stack_top = PROC1_STACK_ADDR + src->p_pid * PROC_STACK_SIZE;
 	src_stack_bottom = src->p_registers.reg_esp;
-	dest_stack_top = 0 /* YOUR CODE HERE */;
-	dest_stack_bottom = 0 /* YOUR CODE HERE: calculate based on the
-				 other variables */;
+	uint32_t difference = src_stack_top - src_stack_bottom;
+	dest_stack_top = PROC1_STACK_ADDR + dest->p_pid * PROC_STACK_SIZE;
+	dest_stack_bottom = dest_stack_top - difference;
 	// YOUR CODE HERE: memcpy the stack and set dest->p_registers.reg_esp
+	memcpy((void *)dest_stack_bottom, (void *)src_stack_bottom, difference);
+	dest->p_registers.reg_esp = dest_stack_bottom;
 }
 
 
